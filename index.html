@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flai Competitive Battlecard — Numa · Stella · Pam · Mia</title>
+<style>
+    :root {
+        --bg-primary: #0a0d14;
+        --bg-elevated: #0f131c;
+        --bg-surface: #161b28;
+        --bg-hover: #1e2536;
+        --border: rgba(255,255,255,0.08);
+        --border-strong: rgba(255,255,255,0.16);
+        --text-primary: #ffffff;
+        --text-secondary: rgba(255,255,255,0.72);
+        --text-muted: rgba(255,255,255,0.48);
+        --accent: #6366f1;
+        --accent-2: #22d3ee;
+        --accent-hover: #4f46e5;
+        --you-win: #10b981;
+        --they-win: #ef4444;
+        --tie: #f59e0b;
+        --radius: 12px;
+        --radius-sm: 8px;
+        --transition: 180ms ease;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+        font-size: 15px;
+        line-height: 1.55;
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent-2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Layout */
+    .container { max-width: 1280px; margin: 0 auto; padding: 32px 24px 80px; }
+    header.top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 28px;
+    }
+    .brand {
+        display: flex; align-items: center; gap: 14px;
+    }
+    .brand-mark {
+        width: 44px; height: 44px; border-radius: 10px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 20px; color: #fff;
+    }
+    .brand h1 { font-size: 22px; letter-spacing: -0.01em; }
+    .brand .sub { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+    .meta { color: var(--text-muted); font-size: 13px; text-align: right; }
+    .meta strong { color: var(--text-secondary); }
+
+    /* Tabs */
+    nav.tabs {
+        display: flex; gap: 4px; flex-wrap: wrap;
+        background: var(--bg-elevated);
+        padding: 6px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        margin-bottom: 24px;
+        position: sticky; top: 0; z-index: 10;
+    }
+    .tab {
+        padding: 10px 16px;
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 14px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: background var(--transition), color var(--transition);
+        font-family: inherit;
+    }
+    .tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .tab.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+    }
+    .tab .pill {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 1px 7px;
+        font-size: 11px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.14);
+        color: rgba(255,255,255,0.85);
+    }
+
+    /* Sections */
+    .tab-content { display: none; animation: fade 260ms ease; }
+    .tab-content.active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    h2 { font-size: 20px; margin-bottom: 14px; letter-spacing: -0.01em; }
+    h3 { font-size: 16px; margin-bottom: 10px; letter-spacing: -0.005em; color: var(--text-primary); }
+    h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em;
+         color: var(--text-muted); margin-bottom: 10px; font-weight: 600; }
+    p { color: var(--text-secondary); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+    .card {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: border-color var(--transition), transform var(--transition);
+    }
+    .card:hover { border-color: var(--border-strong); }
+    .card-lg { padding: 28px; }
+
+    .kv-list { list-style: none; }
+    .kv-list li {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        display: flex; justify-content: space-between; gap: 20px;
+        font-size: 14px;
+    }
+    .kv-list li:last-child { border-bottom: none; }
+    .kv-list .k { color: var(--text-muted); flex-shrink: 0; }
+    .kv-list .v { color: var(--text-primary); text-align: right; }
+
+    .bullets { list-style: none; }
+    .bullets li {
+        padding: 8px 0 8px 22px;
+        position: relative;
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+    .bullets li::before {
+        content: "";
+        position: absolute; left: 4px; top: 16px;
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--accent-2);
+    }
+    .bullets.win li::before { background: var(--you-win); }
+    .bullets.lose li::before { background: var(--they-win); }
+
+    /* Matrix table */
+    .matrix-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+    table.matrix {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--bg-elevated);
+        font-size: 13.5px;
+        min-width: 820px;
+    }
+    table.matrix th, table.matrix td {
+        padding: 13px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+    }
+    table.matrix thead th {
+        position: sticky; top: 0;
+        background: var(--bg-surface);
+        font-weight: 600; font-size: 13px;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-strong);
+    }
+    table.matrix thead th.you { color: var(--you-win); }
+    table.matrix tbody tr:hover { background: rgba(255,255,255,0.02); }
+    table.matrix td:first-child { color: var(--text-muted); font-weight: 500; width: 170px; }
+
+    .chip {
+        display: inline-block;
+        padding: 2px 9px; border-radius: 20px;
+        font-size: 11.5px; font-weight: 600;
+        border: 1px solid transparent;
+    }
+    .chip.you { background: rgba(16,185,129,0.12); color: var(--you-win); border-color: rgba(16,185,129,0.3); }
+    .chip.them { background: rgba(239,68,68,0.1); color: var(--they-win); border-color: rgba(239,68,68,0.28); }
+    .chip.tie { background: rgba(245,158,11,0.1); color: var(--tie); border-color: rgba(245,158,11,0.28); }
+    .chip.neutral { background: rgba(255,255,255,0.06); color: var(--text-secondary); border-color: var(--border); }
+
+    /* Talk-track / objection cards */
+    .tt-block {
+        background: var(--bg-surface);
+        border-left: 3px solid var(--accent);
+        padding: 14px 16px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 12px;
+    }
+    .tt-block .tt-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+    .tt-block .tt-body { color: var(--text-primary); font-size: 14px; }
+    .tt-block.obj { border-left-color: var(--they-win); }
+    .tt-block.obj .tt-label { color: var(--they-win); }
+    .tt-block.land { border-left-color: var(--tie); }
+    .tt-block.land .tt-label { color: var(--tie); }
+    .tt-block.win { border-left-color: var(--you-win); }
+    .tt-block.win .tt-label { color: var(--you-win); }
+
+    blockquote {
+        font-style: italic;
+        padding: 16px 20px;
+        border-left: 3px solid var(--accent-2);
+        background: rgba(34,211,238,0.05);
+        border-radius: var(--radius-sm);
+        color: var(--text-secondary);
+        margin: 10px 0;
+    }
+    blockquote cite {
+        display: block;
+        margin-top: 8px;
+        font-style: normal;
+        font-size: 12.5px;
+        color: var(--text-muted);
+    }
+
+    .hero {
+        background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(34,211,238,0.08));
+        border: 1px solid rgba(99,102,241,0.25);
+        border-radius: var(--radius);
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+    .hero h3 { font-size: 18px; margin-bottom: 6px; }
+    .hero .tag {
+        display: inline-block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+        color: var(--accent-2);
+        margin-bottom: 10px;
+    }
+    .section-divider { margin: 28px 0 16px; }
+
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .release-list { list-style: none; }
+    .release-list li {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+    }
+    .release-list li:last-child { border-bottom: none; }
+    .release-list .date { color: var(--text-muted); font-size: 12px; font-weight: 500; }
+    .release-list .title { color: var(--text-primary); margin: 3px 0; font-weight: 500; }
+    .release-list .why { color: var(--text-secondary); font-size: 13px; }
+
+    footer.foot {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 12px;
+        text-align: center;
+    }
+
+    /* Print — comprehensive light-theme override so PDFs are readable */
+    @media print {
+        :root {
+            --bg-primary: #ffffff;
+            --bg-elevated: #ffffff;
+            --bg-surface: #f5f6f8;
+            --bg-hover: #eef0f4;
+            --border: #e3e6ec;
+            --border-strong: #c9cfd9;
+            --text-primary: #0a0d14;
+            --text-secondary: #374151;
+            --text-muted: #6b7280;
+            --accent: #4f46e5;
+            --accent-2: #0891b2;
+            --accent-hover: #4338ca;
+        }
+        @page { size: A4; margin: 12mm 10mm; }
+        nav.tabs, footer.foot { display: none !important; }
+        .tab-content { display: block !important; page-break-before: always; }
+        .tab-content:first-of-type { page-break-before: auto; }
+        body { background: #ffffff !important; color: #0a0d14 !important; font-size: 11.5px; }
+        .container { max-width: 100%; padding: 0; }
+        header.top { padding-bottom: 14px; margin-bottom: 18px; }
+        .brand h1 { font-size: 20px; color: #0a0d14; }
+        h2, h3, h4 { color: #0a0d14 !important; }
+        p, li, .tt-body, .bullets li { color: #374151 !important; }
+        .kv-list .k, .release-list .date, .release-list .why, .meta { color: #6b7280 !important; }
+        .kv-list .v, .release-list .title { color: #0a0d14 !important; }
+        .card, .hero, .matrix-wrap, .tt-block, blockquote {
+            background: #ffffff !important;
+            border-color: #e3e6ec !important;
+            break-inside: avoid;
+        }
+        .card { box-shadow: none; }
+        .tt-block { background: #f7f8fb !important; }
+        .hero {
+            background: linear-gradient(135deg, #eef2ff, #ecfeff) !important;
+            border-color: #c7d2fe !important;
+        }
+        .matrix-wrap { overflow: visible !important; border: 1px solid #e3e6ec !important; }
+        table.matrix {
+            background: #ffffff;
+            font-size: 8.5px;
+            min-width: 0 !important;
+            width: 100% !important;
+            table-layout: fixed;
+        }
+        table.matrix thead th { background: #f5f6f8 !important; color: #0a0d14 !important; padding: 7px 6px !important; font-size: 9px; }
+        table.matrix td { padding: 6px !important; word-wrap: break-word; overflow-wrap: anywhere; }
+        table.matrix td, table.matrix th { border-bottom-color: #e3e6ec !important; vertical-align: top; }
+        table.matrix td:first-child, table.matrix th:first-child { width: 13%; color: #6b7280 !important; }
+        table.matrix td:not(:first-child), table.matrix th:not(:first-child) { width: 17.4%; }
+        .chip { font-size: 8px !important; padding: 1px 5px !important; white-space: normal; display: inline-block; }
+        .chip { border-width: 1px; }
+        .chip.you { background: #d1fae5 !important; color: #065f46 !important; border-color: #6ee7b7 !important; }
+        .chip.them { background: #fee2e2 !important; color: #991b1b !important; border-color: #fca5a5 !important; }
+        .chip.tie { background: #fef3c7 !important; color: #92400e !important; border-color: #fcd34d !important; }
+        .chip.neutral { background: #f3f4f6 !important; color: #374151 !important; border-color: #d1d5db !important; }
+        .tab .pill { display: none; }
+        blockquote { background: #ecfeff !important; border-left-color: #0891b2 !important; color: #334155 !important; }
+        .brand-mark { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <header class="top">
+        <div class="brand">
+            <div class="brand-mark">F</div>
+            <div>
+                <h1>Flai Competitive Battlecard</h1>
+                <div class="sub">AI Communications for Auto Dealerships · Fixed Ops + Variable Ops</div>
+            </div>
+        </div>
+        <div class="meta">
+            <div>Generated <strong>April 22, 2026</strong></div>
+            <div>Competitors: <strong>Numa · Stella · Pam.ai · Mia</strong></div>
+            <div style="margin-top:10px;"><a href="battlecard.pdf" download style="display:inline-block;padding:7px 14px;background:linear-gradient(135deg,var(--accent),var(--accent-hover));color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;box-shadow:0 2px 10px rgba(99,102,241,0.25);">&darr; Download PDF</a></div>
+        </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+        <button class="tab active" data-tab="matrix">Comparison Matrix</button>
+        <button class="tab" data-tab="flai">Flai <span class="pill">You</span></button>
+        <button class="tab" data-tab="numa">Numa</button>
+        <button class="tab" data-tab="stella">Stella</button>
+        <button class="tab" data-tab="pam">Pam.ai</button>
+        <button class="tab" data-tab="mia">Mia</button>
+        <button class="tab" data-tab="playbook">Playbook</button>
+    </nav>
+
+    <!-- ========== MATRIX ========== -->
+    <section id="matrix" class="tab-content active">
+        <div class="hero">
+            <span class="tag">Head-to-Head Overview</span>
+            <h3>Where Flai fits in the auto retail AI landscape</h3>
+            <p>The market splits into three flavors: omnichannel "platform" players (Numa, Mia, Podium-adjacent), voice-first receptionists (Stella, Pam), and the newer human-feeling, deeply-integrated generation (Flai). Your wedge: <strong>built-from-scratch voice AI that sounds human, deep DMS/CRM/scheduler writeback, and a platform that covers lead &rarr; appointment with equal strength across fixed and variable ops</strong>.</p>
+        </div>
+
+        <h2>Capability Matrix</h2>
+        <div class="matrix-wrap">
+            <table class="matrix">
+                <thead>
+                    <tr>
+                        <th>Dimension</th>
+                        <th class="you">Flai</th>
+                        <th>Numa</th>
+                        <th>Stella</th>
+                        <th>Pam.ai</th>
+                        <th>Mia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Funding</td>
+                        <td>$6M seed (Toyota Ventures, First Round, YC)</td>
+                        <td>$48M+ (Series B)</td>
+                        <td>Undisclosed (seed-era)</td>
+                        <td>Autotech Ventures-backed</td>
+                        <td>$29M (Series A, Jan 2026)</td>
+                    </tr>
+                    <tr>
+                        <td>Dealership Count</td>
+                        <td>Early (growing fast; YC S25)</td>
+                        <td>1,300+</td>
+                        <td>300+</td>
+                        <td>500+ (450+ in 18 mo)</td>
+                        <td>350+ franchise</td>
+                    </tr>
+                    <tr>
+                        <td>Voice AI Quality</td>
+                        <td><span class="chip you">Built from scratch · human-feel</span></td>
+                        <td><span class="chip tie">Platform-first</span></td>
+                        <td><span class="chip neutral">Mature, more traditional</span></td>
+                        <td><span class="chip tie">Voice-centric</span></td>
+                        <td><span class="chip tie">Strong conversational</span></td>
+                    </tr>
+                    <tr>
+                        <td>Fixed Ops (Service)</td>
+                        <td><span class="chip you">Full workflow + writeback</span></td>
+                        <td><span class="chip you">Deep (service lane, LiveCSI)</span></td>
+                        <td><span class="chip you">Core strength</span></td>
+                        <td><span class="chip you">Core strength</span></td>
+                        <td><span class="chip you">Core strength</span></td>
+                    </tr>
+                    <tr>
+                        <td>Variable Ops (Sales)</td>
+                        <td><span class="chip you">Native &mdash; lead qual, test drives, inventory Q&amp;A, follow-up</span></td>
+                        <td><span class="chip tie">New via Ficus acquisition (Apr '26)</span></td>
+                        <td><span class="chip tie">Limited sales depth</span></td>
+                        <td><span class="chip tie">Expanding</span></td>
+                        <td><span class="chip you">Sales + service parity</span></td>
+                    </tr>
+                    <tr>
+                        <td>Channels</td>
+                        <td>Voice, SMS, email, recall outreach</td>
+                        <td>Voice, SMS, status updates, comms layer</td>
+                        <td>Voice, SMS</td>
+                        <td>Voice, SMS, chat</td>
+                        <td>Voice, SMS, outbound campaigns</td>
+                    </tr>
+                    <tr>
+                        <td>Languages</td>
+                        <td><span class="chip you">Multi-language (Eng, Spanish, more)</span></td>
+                        <td>English</td>
+                        <td>English</td>
+                        <td>English + Spanish</td>
+                        <td>English</td>
+                    </tr>
+                    <tr>
+                        <td>DMS Integrations</td>
+                        <td>CDK, Reynolds, Tekion (ARC partner)</td>
+                        <td>CDK, Reynolds, Dealertrack</td>
+                        <td>CDK, Reynolds, Tekion, Dealertrack, Auto/Mate, Autosoft, DealerBuilt, PBS</td>
+                        <td>CDK, Cox Auto, Tekion (Strategic Partner)</td>
+                        <td>35+ systems; bi-directional CDK, Reynolds, Tekion</td>
+                    </tr>
+                    <tr>
+                        <td>Scheduler Integrations</td>
+                        <td>Xtime, Tekion</td>
+                        <td>CDK, Reynolds</td>
+                        <td>Xtime, CDK, Reynolds, Dealer-FX, MyKaarma, Tekion</td>
+                        <td>Xtime, Tekion; exclusive w/ Dealer-FX</td>
+                        <td>CDK, Reynolds, Xtime</td>
+                    </tr>
+                    <tr>
+                        <td>Pricing Model</td>
+                        <td>Per-rooftop SaaS (quote)</td>
+                        <td>Per-user SaaS + pay-per-appt (Appt Agent)</td>
+                        <td>Quote-based</td>
+                        <td>Quote-based (quick ROI claims)</td>
+                        <td>Quote-based</td>
+                    </tr>
+                    <tr>
+                        <td>Flagship Proof Point</td>
+                        <td><strong>Freeman Lexus</strong>: 1,100 calls, 0 missed, 88% booking rate</td>
+                        <td>"Complaints completely disappeared" &mdash; multi-franchise CIO</td>
+                        <td>Tom Wood Audi: 63% efficiency rate</td>
+                        <td>$50K avg monthly service rev / rooftop; 20% lift, 10x ROI</td>
+                        <td>$45M revenue enabled; 1M+ conversations 2025</td>
+                    </tr>
+                    <tr>
+                        <td>Security / Compliance</td>
+                        <td><span class="chip you">SOC 2 Type II</span></td>
+                        <td>Enterprise-grade</td>
+                        <td>Enterprise-grade</td>
+                        <td>Enterprise-grade</td>
+                        <td>Microsoft Defender featured</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="section-divider">Quick Win/Loss Guide</h2>
+        <div class="grid-2">
+            <div class="card">
+                <h4 style="color:var(--you-win);">When You Beat Them</h4>
+                <ul class="bullets win">
+                    <li><strong>Dealer cares about voice quality</strong>: let them A/B listen &mdash; Flai's from-scratch voice stack beats stitched-together GPT wrappers.</li>
+                    <li><strong>Deep Tekion shop</strong>: Flai is an announced ARC partner across Sales, CRM, Parts, and Service (Dec 2025).</li>
+                    <li><strong>Wants one vendor for sales + service</strong>: you're natively equal on both; Numa just acquired their sales engine, Stella/Pam skew service.</li>
+                    <li><strong>Lexus / Toyota store</strong>: Toyota Ventures is on your cap table &mdash; that carries weight.</li>
+                    <li><strong>Missed-call economics matter</strong>: Freeman Lexus case (0 missed on 1,100 calls, 88% book rate) is the strongest proof point in the category.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4 style="color:var(--they-win);">When They Beat You</h4>
+                <ul class="bullets lose">
+                    <li><strong>"Safe pick" large group RFP</strong>: Numa's 1,300 rooftops and Fast Company top-10 ranking win credibility checkboxes.</li>
+                    <li><strong>Legacy DMS stack (Auto/Mate, PBS, DealerBuilt)</strong>: Stella has the widest DMS list published.</li>
+                    <li><strong>Deeply entrenched Dealer-FX / CallRevu stack</strong>: Pam's integration into those workflows is hard to dislodge mid-contract.</li>
+                    <li><strong>Heavy bi-directional integration checklist</strong>: Mia publicly claims 35+ systems.</li>
+                    <li><strong>Exclusive Dealer-FX shop</strong>: Pam is Dealer-FX's preferred voice AI partner.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FLAI ========== -->
+    <section id="flai" class="tab-content">
+        <div class="hero">
+            <span class="tag">Your Company</span>
+            <h3>Flai &mdash; The only AI communications platform built from the ground up to feel human</h3>
+            <p>AI workers for car dealerships that deeply integrate with your existing systems to reliably turn every lead into an appointment &mdash; across phone, SMS, email, and recall outreach, spanning sales and service.</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h4>Company Profile</h4>
+                <ul class="kv-list">
+                    <li><span class="k">Founded</span><span class="v">2024 (YC S25)</span></li>
+                    <li><span class="k">Founders</span><span class="v">Ari Polakof, Alen Polakof, Juan Alzugaray</span></li>
+                    <li><span class="k">HQ</span><span class="v">San Francisco</span></li>
+                    <li><span class="k">Funding</span><span class="v">$6M seed (extended)</span></li>
+                    <li><span class="k">Investors</span><span class="v">Toyota Ventures, First Round, YC, SV Angel, Liquid 2, Innovation Endeavors</span></li>
+                    <li><span class="k">Compliance</span><span class="v">SOC 2 Type II</span></li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>Platform Coverage</h4>
+                <ul class="bullets">
+                    <li><strong>Voice AI:</strong> inbound + outbound calls, routes intelligently, transfers with context</li>
+                    <li><strong>SMS + Email:</strong> two-way conversations, follow-up cadences</li>
+                    <li><strong>Multi-language:</strong> English, Spanish, and more &mdash; same voice quality across every language</li>
+                    <li><strong>Recall outreach:</strong> programmatic campaigns with booking</li>
+                    <li><strong>Sales flows:</strong> lead qualification, inventory Q&amp;A, test-drive booking</li>
+                    <li><strong>Service flows:</strong> appointment booking direct to scheduler with op-code mapping</li>
+                    <li><strong>Writeback:</strong> DMS/CRM/scheduler &mdash; no manual data entry</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-divider">Recent Releases (90 days)</h2>
+        <div class="card">
+            <ul class="release-list">
+                <li>
+                    <div class="date">Q1 2026</div>
+                    <div class="title">Tekion ARC integration expansion</div>
+                    <div class="why">Flai is now an announced Tekion Automotive Retail Cloud partner across Sales, CRM, Parts, and Service &mdash; the only AI comms startup with this breadth inside ARC.</div>
+                </li>
+                <li>
+                    <div class="date">Jan 2026</div>
+                    <div class="title">Toyota Ventures joins seed round</div>
+                    <div class="why">OEM-adjacent capital validates the auto-native thesis; meaningful for Toyota/Lexus franchise conversations.</div>
+                </li>
+                <li>
+                    <div class="date">Q1 2026</div>
+                    <div class="title">Fixed-ops focused product updates</div>
+                    <div class="why">Service scheduling workflows tuned for the 64% of dealership customers who still book by phone; op-code mapping and transport coordination improvements.</div>
+                </li>
+            </ul>
+        </div>
+
+        <h2 class="section-divider">Your Key Differentiators</h2>
+        <div class="grid-3">
+            <div class="card">
+                <h4>Built From Scratch</h4>
+                <p>Flai owns the full voice stack &mdash; not a Retell/Vapi wrapper. Latency, turn-taking, and interruption handling are tuned for the service-drive noise floor.</p>
+            </div>
+            <div class="card">
+                <h4>Human-Feeling Conversation</h4>
+                <p>The market's biggest complaint about AI phone agents is "it sounds like a robot." Flai's from-ground-up design is the wedge.</p>
+            </div>
+            <div class="card">
+                <h4>Deep Writeback</h4>
+                <p>Real-time availability check, books the slot, confirms details, and writes back to the DMS/CRM/scheduler &mdash; so advisors don't re-key anything.</p>
+            </div>
+            <div class="card">
+                <h4>Sales + Service Parity</h4>
+                <p>Native to both. Numa just acquired Ficus for sales; Stella and Pam are still service-leaning. Flai was built dual-ops from day one.</p>
+            </div>
+            <div class="card">
+                <h4>Tekion ARC Partner</h4>
+                <p>Announced integration across Sales, CRM, Parts, and Service. Fast lane for any Tekion-first dealer group.</p>
+            </div>
+            <div class="card">
+                <h4>OEM-backed Cap Table</h4>
+                <p>Toyota Ventures signals auto industry conviction. Pairs with First Round + YC for technical credibility.</p>
+            </div>
+            <div class="card">
+                <h4>Multi-Language Voice</h4>
+                <p>English, Spanish, and more &mdash; same from-scratch voice quality in every language. Neutralizes Pam's bilingual pitch and opens Hispanic-market and multi-language-community rooftops.</p>
+            </div>
+        </div>
+
+        <h2 class="section-divider">Flagship Proof Point</h2>
+        <blockquote>
+            Freeman Lexus processed roughly <strong>1,100 calls through Flai with zero missed calls and an 88% booking rate</strong> on bookable calls.
+            <br><br>
+            "Our service appointments have more than doubled and service advisors have more time to sell in the drive."
+            <cite>&mdash; Freeman Lexus service leadership</cite>
+        </blockquote>
+    </section>
+
+    <!-- ========== NUMA ========== -->
+    <section id="numa" class="tab-content">
+        <div class="hero">
+            <span class="tag">Competitor</span>
+            <h3>Numa &mdash; Omnichannel platform, sales via acquisition</h3>
+            <p>Market leader by rooftop count. Strong in service lane intelligence and CSI. Recently acquired Ficus to catch up on sales/variable ops &mdash; that integration story is still being written.</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h4>Profile</h4>
+                <ul class="kv-list">
+                    <li><span class="k">Headcount signal</span><span class="v">Scale-up, 200% YoY revenue (Apr '26)</span></li>
+                    <li><span class="k">Funding</span><span class="v">$48M+ (Series B '24, $32M round)</span></li>
+                    <li><span class="k">Dealerships</span><span class="v">1,300+ US &amp; Canada</span></li>
+                    <li><span class="k">Target</span><span class="v">Franchise dealer groups, multi-rooftop</span></li>
+                    <li><span class="k">Positioning</span><span class="v">"AI agent platform for dealerships"</span></li>
+                    <li><span class="k">Recognition</span><span class="v">Fast Company #10 most innovative auto 2026</span></li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>Pricing Model</h4>
+                <ul class="bullets">
+                    <li><strong>Call Intelligence Agent:</strong> low fixed monthly fee per user</li>
+                    <li><strong>Appointment Agent:</strong> pay-per-performance &mdash; dealers pay only for appointments the AI fully books</li>
+                    <li><strong>Platform pricing:</strong> multi-tiered, not public; varies by rooftop count and module mix</li>
+                    <li><strong>Watch-out:</strong> pay-per-appt can encourage aggressive booking behavior that doesn't match the dealership's labor capacity</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-divider">Recent Releases (last 90 days)</h2>
+        <div class="card">
+            <ul class="release-list">
+                <li>
+                    <div class="date">Apr 2026</div>
+                    <div class="title">Acquisition of Ficus (AI sales platform)</div>
+                    <div class="why">Explicit move into variable ops &mdash; they didn't build it natively. Integration, product unification, and pricing are all unknowns for the next 2-3 quarters.</div>
+                </li>
+                <li>
+                    <div class="date">Jan 2026 (NADA)</div>
+                    <div class="title">Four new products: Opportunities, Operator, LiveCSI, Platform</div>
+                    <div class="why">Opportunities (outbound), Operator (AI receptionist), LiveCSI (real-time CSI), Platform (unified comms layer). Big portfolio expansion.</div>
+                </li>
+                <li>
+                    <div class="date">Jan 2026</div>
+                    <div class="title">Appointment Agent (pay-for-performance)</div>
+                    <div class="why">First pay-per-performance pricing model in auto AI. Sales angle and risk reducer for cautious dealers.</div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h4 style="color:var(--they-win);">Where Numa Wins</h4>
+                <ul class="bullets lose">
+                    <li>Rooftop count &mdash; "safe" buy for risk-averse dealer groups</li>
+                    <li>Service-lane status updates: DMS event-driven messaging is best-in-class</li>
+                    <li>LiveCSI &mdash; novel real-time satisfaction dashboard is a differentiator if the dealer cares about CSI</li>
+                    <li>Pay-per-appt pricing removes initial risk for skeptical buyers</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4 style="color:var(--you-win);">Where Flai Wins</h4>
+                <ul class="bullets win">
+                    <li>Voice quality &mdash; do a side-by-side call; Numa historically leans platform-first, not voice-first</li>
+                    <li>Sales is a bolt-on for Numa (Ficus acquisition); Flai is native sales + service</li>
+                    <li>Tekion depth: Flai is an ARC partner across Sales/CRM/Parts/Service</li>
+                    <li>Simpler pricing story vs. Numa's multi-product catalog</li>
+                    <li>For greenfield buyers, Flai's from-scratch voice is the "better mousetrap"; Numa is optimizing a legacy platform</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-divider">Talk Tracks</h2>
+        <div class="tt-block">
+            <div class="tt-label">Early Mention</div>
+            <div class="tt-body">"Numa's a great option for service status updates at scale. The question I'd ask is: when your sales team picks up the phone, is that the same AI they'd get on the service line, or is that a separate product Numa just acquired? Because with us, it's one brain, one voice, one data model across sales and service."</div>
+        </div>
+        <div class="tt-block">
+            <div class="tt-label">Displacement (customer already uses Numa)</div>
+            <div class="tt-body">"I'm not going to ask you to rip Numa out. Let's run a 60-day A/B: Flai on your sales line or one rooftop's service line, head-to-head. If our booking rate and voice quality don't beat theirs, you send us home. Every dealer we've run that test with has switched at least part of the workload over."</div>
+        </div>
+        <div class="tt-block">
+            <div class="tt-label">Late Addition to Eval</div>
+            <div class="tt-body">"Happy to be late &mdash; it actually helps us. Numa set the bar for omnichannel; we'll show you what the next generation sounds like. Give us 30 minutes and we'll play you three live calls, your choice of dealership, side by side."</div>
+        </div>
+
+        <h2 class="section-divider">Objection Handling</h2>
+        <div class="tt-block obj">
+            <div class="tt-label">"Numa has 1,300 dealers, you have a lot fewer"</div>
+            <div class="tt-body">"True &mdash; and that's the reason our voice quality leaps theirs. They're maintaining a platform across 1,300 stores; we're tuning voice models for the service drive every week. You'd rather be customer #50 of the product that's winning the 2027 RFPs than customer #1,300 of the one that already had to acquire its sales capability."</div>
+        </div>
+        <div class="tt-block obj">
+            <div class="tt-label">"We like Numa's pay-per-appointment pricing"</div>
+            <div class="tt-body">"It's attractive up front, but think about incentive alignment. Pay-per-appt rewards booking volume, not booking quality. A bad-fit appointment still books a bay. We price per-rooftop so our incentive is to make your advisors' lives easier, your CSI higher, and your shop full of the right jobs &mdash; and we're happy to show you the unit economics."</div>
+        </div>
+        <div class="tt-block obj">
+            <div class="tt-label">"Numa's LiveCSI sounds compelling"</div>
+            <div class="tt-body">"It is a neat dashboard &mdash; but CSI is an output, not an input. The way to move CSI is better voice-drive handoffs and faster status comms, which is exactly where Flai wins the actual calls. If you want real-time sentiment, we can expose that too; the harder problem is the one we solve first."</div>
+        </div>
+
+        <h2 class="section-divider">Landmine Questions to Plant</h2>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 1</div>
+            <div class="tt-body">"When Numa demos their sales AI, ask: 'Is this the product you built, or the Ficus product you acquired in April? What's the integration timeline into Opportunities and Operator?'"</div>
+        </div>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 2</div>
+            <div class="tt-body">"Ask Numa to play you three un-cherry-picked recorded calls from a franchise store like yours &mdash; sales line, parts, and a service appointment with a transfer. Listen for robotic cadence on the transfer handoffs."</div>
+        </div>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 3</div>
+            <div class="tt-body">"Ask how the pay-per-appointment model handles no-shows and mis-booked appointments. Who absorbs the bay cost when the AI books a bad fit?"</div>
+        </div>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 4</div>
+            <div class="tt-body">"What's Numa's Tekion integration depth beyond DMS writeback &mdash; are they inside ARC across Sales, CRM, and Parts like Flai is?"</div>
+        </div>
+    </section>
+
+    <!-- ========== STELLA ========== -->
+    <section id="stella" class="tab-content">
+        <div class="hero">
+            <span class="tag">Competitor</span>
+            <h3>Stella Automotive AI &mdash; Voice-first, broad DMS coverage</h3>
+            <p>The "digital voice assistant" incumbent. Strong service-lane reputation and the widest DMS list in the market. Feels more traditional than the newest generation &mdash; a strength for conservative buyers, a liability in head-to-head voice demos.</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h4>Profile</h4>
+                <ul class="kv-list">
+                    <li><span class="k">Founded</span><span class="v">2022</span></li>
+                    <li><span class="k">Dealerships</span><span class="v">300+</span></li>
+                    <li><span class="k">Notable customers</span><span class="v">Banister, Germain, Boch Toyota, Tom Wood</span></li>
+                    <li><span class="k">Positioning</span><span class="v">"Digital voice assistant for dealerships"</span></li>
+                    <li><span class="k">Channel focus</span><span class="v">Voice + SMS</span></li>
+                    <li><span class="k">Market position</span><span class="v">Established, service-lane credible</span></li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>Integrations (broadest published)</h4>
+                <ul class="bullets">
+                    <li><strong>DMS:</strong> Auto/Mate, Autosoft, CDK, DealerBuilt, Dealertrack, PBS, Reynolds, Tekion</li>
+                    <li><strong>Schedulers:</strong> CDK, Dealer-FX, MyKaarma, Tekion, Reynolds, Xtime</li>
+                    <li><strong>Partners:</strong> Affinitiv, Reynolds, Xtime, CDK, Dealer-FX, MyKaarma</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-divider">Recent Releases (last 90 days)</h2>
+        <div class="card">
+            <ul class="release-list">
+                <li>
+                    <div class="date">Q1 2026</div>
+                    <div class="title">"Always-On Dealership" campaign positioning</div>
+                    <div class="why">Marketing push around 24/7 voice AI replacing IVR, plus expanded service-booking connectivity. Incremental rather than step-change.</div>
+                </li>
+                <li>
+                    <div class="date">2025</div>
+                    <div class="title">STELLA Receptionist expansion</div>
+                    <div class="why">Op-code mapping, transportation arrangement, new customer record creation. Fills feature gaps but not a category-expanding release.</div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h4 style="color:var(--they-win);">Where Stella Wins</h4>
+                <ul class="bullets lose">
+                    <li>Legacy DMS shops (Auto/Mate, PBS, DealerBuilt) &mdash; Stella has them, most competitors don't</li>
+                    <li>Service-lane incumbency &mdash; 300+ stores of pattern matching</li>
+                    <li>Scheduler breadth (MyKaarma, Dealer-FX, Xtime, Tekion all covered)</li>
+                    <li>Known brand with GMs &mdash; lower internal sell risk</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4 style="color:var(--you-win);">Where Flai Wins</h4>
+                <ul class="bullets win">
+                    <li>Voice quality &mdash; Stella is a 2022-era voice assistant; Flai is a 2025-era conversational AI</li>
+                    <li>Sales workflows &mdash; Stella leans service; Flai sells the variable-ops use case natively</li>
+                    <li>Tekion ARC depth (Sales/CRM/Parts/Service, not just scheduler)</li>
+                    <li>Recent investor momentum &mdash; Toyota Ventures signals forward motion</li>
+                    <li>Human-feel wedge: let them listen to 3 calls back-to-back</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-divider">Talk Tracks</h2>
+        <div class="tt-block">
+            <div class="tt-label">Early Mention</div>
+            <div class="tt-body">"Stella's a known quantity &mdash; lots of stores on them. The one thing I'd test before signing: listen to their voice side-by-side with ours. Their platform was designed in 2022; voice AI has changed more in the last 18 months than in the 5 years before that."</div>
+        </div>
+        <div class="tt-block">
+            <div class="tt-label">Displacement</div>
+            <div class="tt-body">"If Stella's humming on service, great &mdash; keep them for now. Start us on your sales line. That's where Stella is thinnest, and it's where Flai was purpose-built. Prove the voice quality there, then we can talk about service."</div>
+        </div>
+        <div class="tt-block">
+            <div class="tt-label">Legacy DMS Shop</div>
+            <div class="tt-body">"If you're on Auto/Mate or PBS, Stella has the connector today &mdash; you're right. We're happy to share our integration timeline if the Tekion/CDK/Reynolds majority of your stores want to test Flai while your legacy ones stay on Stella. No reason to pick one across the whole group."</div>
+        </div>
+
+        <h2 class="section-divider">Objection Handling</h2>
+        <div class="tt-block obj">
+            <div class="tt-label">"Stella has more dealers and more integrations"</div>
+            <div class="tt-body">"On DMS integration list, yes. On dealer count, they have about 2x us. Here's the thing: Stella had a 3-year head start and only got to ~300 rooftops. Flai launched and already has Toyota Ventures on the cap table and Tekion as an ARC partner. Momentum matters for where the puck is going."</div>
+        </div>
+        <div class="tt-block obj">
+            <div class="tt-label">"Our GM has heard of Stella but not Flai"</div>
+            <div class="tt-body">"Totally fair. But the question isn't recognition &mdash; it's which product your customers can't tell is AI. Put us on a call with your GM and let us play 90 seconds of a real customer conversation. That's usually all it takes."</div>
+        </div>
+
+        <h2 class="section-divider">Landmine Questions</h2>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 1</div>
+            <div class="tt-body">"Ask Stella to name three product releases from the last 6 months that aren't repackaged marketing. Listen for roadmap velocity."</div>
+        </div>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 2</div>
+            <div class="tt-body">"Ask what percentage of their product development goes to variable ops vs fixed ops. Most of their case studies are service-drive."</div>
+        </div>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 3</div>
+            <div class="tt-body">"Ask for their interruption-handling architecture. A 2022 voice assistant struggles when the customer talks over it &mdash; demo this live."</div>
+        </div>
+    </section>
+
+    <!-- ========== PAM ========== -->
+    <section id="pam" class="tab-content">
+        <div class="hero">
+            <span class="tag">Competitor</span>
+            <h3>Pam.ai &mdash; Voice-first scaling fast, strong partner network</h3>
+            <p>Explosive 18-month growth to 450+ rooftops, 95%+ retention. CallRevu and Dealer-FX partnerships make them the default "voice AI inside someone else's stack" &mdash; both a strength (distribution) and a wedge for us to exploit (independence). Their bilingual story is no longer differentiating &mdash; Flai now supports English, Spanish, and additional languages with the same voice quality in each.</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h4>Profile</h4>
+                <ul class="kv-list">
+                    <li><span class="k">Dealerships</span><span class="v">500+ across 33 US states + 3 Canadian provinces</span></li>
+                    <li><span class="k">Growth</span><span class="v">450+ rooftops in first 18 months</span></li>
+                    <li><span class="k">Retention</span><span class="v">95%+ rooftop retention</span></li>
+                    <li><span class="k">Funding</span><span class="v">Autotech Ventures-backed</span></li>
+                    <li><span class="k">Partners</span><span class="v">Dealer-FX (exclusive), CallRevu, Tekion Strategic Partner</span></li>
+                    <li><span class="k">Languages</span><span class="v">English + Spanish (parity w/ Flai)</span></li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>Proof Points</h4>
+                <ul class="bullets">
+                    <li><strong>$50K</strong> avg monthly service revenue added per dealership</li>
+                    <li><strong>20%</strong> revenue increase, <strong>10x ROI</strong></li>
+                    <li><strong>$100M+</strong> in repair orders processed</li>
+                    <li><strong>35 hours/month</strong> of phone time saved per store</li>
+                    <li><strong>1-day</strong> setup time claimed</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-divider">Recent Releases (last 90 days)</h2>
+        <div class="card">
+            <ul class="release-list">
+                <li>
+                    <div class="date">Q1 2026</div>
+                    <div class="title">Tekion Strategic Partner Program membership</div>
+                    <div class="why">Deeper Tekion positioning &mdash; though Flai is an ARC partner across more surface area (Sales/CRM/Parts/Service).</div>
+                </li>
+                <li>
+                    <div class="date">Late 2025 - 2026</div>
+                    <div class="title">Outbound expansion: recalls, declined ops, inactives, sales follow-up</div>
+                    <div class="why">Moves Pam from "answer the phone" to "work your outbound list" &mdash; direct land grab into variable ops.</div>
+                </li>
+                <li>
+                    <div class="date">Dec 2024</div>
+                    <div class="title">CallRevu exclusive automotive partnership</div>
+                    <div class="why">Distribution through CallRevu's dealer base. Powerful, but ties them to CallRevu's positioning.</div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h4 style="color:var(--they-win);">Where Pam Wins</h4>
+                <ul class="bullets lose">
+                    <li>Dealer-FX shops &mdash; Pam is the preferred voice AI</li>
+                    <li>CallRevu distribution channel</li>
+                    <li>ROI storytelling ($50K/mo, 10x) is sticky with GMs</li>
+                    <li>1-day setup claim reduces deployment risk perception</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4 style="color:var(--you-win);">Where Flai Wins</h4>
+                <ul class="bullets win">
+                    <li>Independent of CallRevu &mdash; Pam's distribution advantage is also a dependency</li>
+                    <li>Tekion ARC partner across Sales/CRM/Parts/Service, not just voice-inside-a-scheduler</li>
+                    <li>Sales workflows are native, not an expansion project</li>
+                    <li>Custom-built voice stack vs Pam's voice-centric-but-not-from-scratch approach</li>
+                    <li><strong>Multi-language parity &mdash; and then some.</strong> Pam does English + Spanish; Flai matches that and extends beyond, all with the same from-scratch voice quality</li>
+                    <li>SOC 2 Type II compliance posture stated publicly</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-divider">Talk Tracks</h2>
+        <div class="tt-block">
+            <div class="tt-label">Early Mention</div>
+            <div class="tt-body">"Pam's done a great job scaling through CallRevu and Dealer-FX &mdash; the distribution is real. If your store isn't already tied into those partners, you're picking a voice AI that's optimized for someone else's workflow. Flai was built as the operating system of your comms, not a voice layer on top."</div>
+        </div>
+        <div class="tt-block">
+            <div class="tt-label">Displacement</div>
+            <div class="tt-body">"If Pam's driving $50K a month, amazing &mdash; protect that. Let's put Flai on a second use case: outbound sales follow-up, or a rooftop with different needs. We routinely compound on top of Pam's service numbers, not replace them."</div>
+        </div>
+        <div class="tt-block">
+            <div class="tt-label">Multi-language Market</div>
+            <div class="tt-body">"A year ago, Pam's Spanish voice would have been the differentiator. Not anymore &mdash; Flai now handles English, Spanish, and beyond with the same from-scratch voice quality in every language. The real test is regional accuracy: does the AI actually understand automotive Spanish, including regional op-code vocabulary and the way a service customer in Dallas phrases things differently than one in Miami? Let me play you that exact call. Pam matches us on the language list; we match them on capability; you pick on voice quality."</div>
+        </div>
+
+        <h2 class="section-divider">Objection Handling</h2>
+        <div class="tt-block obj">
+            <div class="tt-label">"Pam's retention is 95%+"</div>
+            <div class="tt-body">"That's a strong number for an 18-month product. The question is whether that's retention of the voice quality or retention of the CallRevu/Dealer-FX stack. When a dealer churns from CallRevu, the Pam relationship typically goes with it. Flai's retention story is purely product-driven &mdash; no captive distribution."</div>
+        </div>
+        <div class="tt-block obj">
+            <div class="tt-label">"Pam claims 1-day setup"</div>
+            <div class="tt-body">"Fast setup is great for the demo, but what matters on day 30 is how well the AI handles your actual call mix. We invest more up front to tune voice, routing, and op-code mapping to your store &mdash; because day 30 is when dealers either renew or quietly ramp down. Ask Pam about their 90-day retention, not their 1-day setup."</div>
+        </div>
+
+        <h2 class="section-divider">Landmine Questions</h2>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 1</div>
+            <div class="tt-body">"Ask Pam: if a dealer decides to leave CallRevu, does the Pam contract, pricing, and implementation come with them or reset?"</div>
+        </div>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 2</div>
+            <div class="tt-body">"Ask for a recorded variable-ops sales call, not a service appointment. Pam's story is mostly service lane; probe sales depth."</div>
+        </div>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 3</div>
+            <div class="tt-body">"Ask whether Pam is inside Tekion's ARC across Sales, CRM, Parts, and Service &mdash; or just the voice layer. Only a few vendors have the broader ARC footprint."</div>
+        </div>
+    </section>
+
+    <!-- ========== MIA ========== -->
+    <section id="mia" class="tab-content">
+        <div class="hero">
+            <span class="tag">Competitor</span>
+            <h3>Mia (Mia Labs) &mdash; The "super employee" pitch, deepest integration list</h3>
+            <p>Best-funded in the peer cohort ($29M total, $20M Series A Jan 2026) and boldest integration claim (35+ systems, bi-directional with CDK, Reynolds, Tekion, Xtime). Strong investor list including Yossi Levi. Positioning similar to Flai's &mdash; this is your closest philosophical competitor.</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h4>Profile</h4>
+                <ul class="kv-list">
+                    <li><span class="k">Founded</span><span class="v">2023</span></li>
+                    <li><span class="k">Dealerships</span><span class="v">350+ franchise</span></li>
+                    <li><span class="k">Funding</span><span class="v">$29M total; $20M Series A Jan '26</span></li>
+                    <li><span class="k">Lead investor</span><span class="v">Permanent Capital Ventures</span></li>
+                    <li><span class="k">Other investors</span><span class="v">Norwest, Eniac, Vine, Analog, Logos, Yossi Levi (Car Dealership Guy)</span></li>
+                    <li><span class="k">Positioning</span><span class="v">"AI super employee" &mdash; single system across depts</span></li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>Integrations &amp; Departments</h4>
+                <ul class="bullets">
+                    <li><strong>35+ systems</strong> claimed across DMS, CRM, scheduler</li>
+                    <li><strong>Deep bi-directional:</strong> CDK, Reynolds, Tekion, Xtime</li>
+                    <li><strong>Departments covered:</strong> sales, service, parts, body shop, receptionist, recall</li>
+                    <li><strong>Direction:</strong> inbound + outbound, voice + text</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-divider">Recent Releases (last 90 days)</h2>
+        <div class="card">
+            <ul class="release-list">
+                <li>
+                    <div class="date">Jan 22, 2026</div>
+                    <div class="title">$20M Series A (Permanent Capital, Norwest)</div>
+                    <div class="why">Significant capital influx. Signals ambition to scale fast &mdash; and to outspend on GTM. Expect aggressive pricing and heavy sales hiring over the next two quarters.</div>
+                </li>
+                <li>
+                    <div class="date">Q1 2026</div>
+                    <div class="title">Outbound Campaigns (voice + text)</div>
+                    <div class="why">Formal outbound product &mdash; appointment booking and revenue boost. Directly competes with Flai's recall + follow-up outreach.</div>
+                </li>
+                <li>
+                    <div class="date">Jan 2026 (NADA)</div>
+                    <div class="title">NADA 2026 product reveal (booth #6568N)</div>
+                    <div class="why">Watch for a platform-broadening announcement. Their messaging is converging on Flai's &mdash; multi-department, inbound + outbound, deeply integrated.</div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h4 style="color:var(--they-win);">Where Mia Wins</h4>
+                <ul class="bullets lose">
+                    <li>Integration breadth (35+ systems) is a real checkbox win in RFPs</li>
+                    <li>Series A capital funds aggressive enterprise sales motion</li>
+                    <li>Yossi Levi on the cap table = dealer-world credibility</li>
+                    <li>"Super employee" positioning resonates with GMs and dealer principals</li>
+                    <li>Strong customer stats &mdash; $45M revenue enabled, 1M+ conversations</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4 style="color:var(--you-win);">Where Flai Wins</h4>
+                <ul class="bullets win">
+                    <li>Voice quality wedge &mdash; Flai built the voice stack from scratch; Mia's voice is strong but not from-zero</li>
+                    <li>Toyota Ventures signals OEM-adjacent credibility vs Mia's pure-VC + influencer mix</li>
+                    <li>Tekion ARC partner depth (published)</li>
+                    <li>Simpler, more human-feel messaging vs "super employee" abstraction</li>
+                    <li>YC S25 + First Round = technical credibility at peer level</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-divider">Talk Tracks</h2>
+        <div class="tt-block">
+            <div class="tt-label">Early Mention (closest philosophical competitor)</div>
+            <div class="tt-body">"Mia and Flai are the two products in the market with the same thesis: one AI across every department, built auto-native, deeply integrated. The difference is the voice. Ask for the three worst 10-second clips from each vendor &mdash; not the best. The delta is obvious."</div>
+        </div>
+        <div class="tt-block">
+            <div class="tt-label">Displacement</div>
+            <div class="tt-body">"Mia's a good product. If you've already deployed them, we can still help &mdash; most of our new logos are running us on a second workflow or a new rooftop. Our typical wedge is outbound sales follow-up, because the margin of voice quality on a warm sales lead matters more than it does on a warranty service call."</div>
+        </div>
+        <div class="tt-block">
+            <div class="tt-label">Well-Funded Procurement Buyer</div>
+            <div class="tt-body">"Mia just raised $20M. We closed $6M with Toyota Ventures and First Round. Bigger rounds aren't always better &mdash; they signal capital needs. We're capital-efficient and focused. The OEM on our cap table tells you how the auto industry itself reads the market."</div>
+        </div>
+
+        <h2 class="section-divider">Objection Handling</h2>
+        <div class="tt-block obj">
+            <div class="tt-label">"Mia claims 35+ integrations. You have a shorter list."</div>
+            <div class="tt-body">"Integration count is a vanity metric. What matters is depth. Flai is inside Tekion's ARC across Sales, CRM, Parts, and Service &mdash; that's four surface areas of one platform, done right. Ask Mia to demo a real sales test-drive booking that writes back into Tekion ARC CRM. Then ask us. See which one actually reconciles."</div>
+        </div>
+        <div class="tt-block obj">
+            <div class="tt-label">"Mia raised $20M &mdash; they're going to win"</div>
+            <div class="tt-body">"Capital doesn't win category leadership &mdash; product does. Mia needs $20M because it's scaling ahead of its unit economics. We're capital-efficient, with a product that was designed to be the standard, and we have Toyota at the table &mdash; the industry betting on where this goes."</div>
+        </div>
+
+        <h2 class="section-divider">Landmine Questions</h2>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 1</div>
+            <div class="tt-body">"Ask Mia for unfiltered recordings &mdash; not hand-picked. 'Send me three random 60-second clips from three different rooftops on your service line today.' Compare to Flai's."</div>
+        </div>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 2</div>
+            <div class="tt-body">"Ask Mia how deep their Tekion ARC integration goes. Are they across Sales, CRM, Parts, and Service like Flai, or just scheduler + DMS read?"</div>
+        </div>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 3</div>
+            <div class="tt-body">"Ask Mia how many of their 350+ dealerships are on the 'super employee' SKU vs a narrower deployment. Filter past marketing headline counts."</div>
+        </div>
+        <div class="tt-block land">
+            <div class="tt-label">Landmine 4</div>
+            <div class="tt-body">"Ask about infrastructure ownership: 'Did you build your voice stack from scratch, or are you on a third-party voice API?' This is the single question that separates Flai from the rest of the cohort."</div>
+        </div>
+    </section>
+
+    <!-- ========== PLAYBOOK ========== -->
+    <section id="playbook" class="tab-content">
+        <div class="hero">
+            <span class="tag">Sales Playbook</span>
+            <h3>How to position Flai in an auto AI deal</h3>
+            <p>A concise field guide to use before and during calls. Use alongside the comparison matrix and per-competitor tabs.</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h4>Opening Positioning (60-second version)</h4>
+                <p>"Flai is the only AI communications platform built from scratch to feel human &mdash; across phone, text, email, and recalls, spanning sales and service. We integrate deeply with your DMS, CRM, scheduler, and phone system so every lead gets worked and every appointment lands in your book. Toyota Ventures, First Round, and YC back us; Freeman Lexus ran 1,100 calls through us with zero missed and an 88% booking rate."</p>
+            </div>
+            <div class="card">
+                <h4>Three Questions to Ask Every Prospect</h4>
+                <ul class="bullets">
+                    <li>"What percentage of inbound calls go to voicemail right now &mdash; do you know?"</li>
+                    <li>"If I played you a 30-second recording of AI answering your service line, could your customers tell the difference?"</li>
+                    <li>"Is your sales team getting the same call-handling quality as your service advisors?"</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-divider">Qualify the Deal in 4 Minutes</h2>
+        <div class="grid-2">
+            <div class="card">
+                <h4>Fixed Ops Signals (service-drive)</h4>
+                <ul class="bullets">
+                    <li>Complaining about advisor overload, BDC turnover, missed calls</li>
+                    <li>Using Xtime, MyKaarma, Tekion Scheduler, Dealer-FX</li>
+                    <li>CSI tied to GM comp</li>
+                    <li>Has a recall backlog</li>
+                    <li>Running on CDK / Reynolds / Tekion DMS</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>Variable Ops Signals (sales)</h4>
+                <ul class="bullets">
+                    <li>Lead response SLA is &gt; 5 minutes</li>
+                    <li>Hot-lead follow-up stops after 3 attempts</li>
+                    <li>BDC does sales prospecting in-house</li>
+                    <li>Internet leads outnumber phone-up by &gt; 5:1</li>
+                    <li>Considering (or already using) a live-person BDC vendor</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-divider">The One Demo Move That Closes</h2>
+        <div class="tt-block win">
+            <div class="tt-label">The A/B Listen</div>
+            <div class="tt-body">Record 60 seconds of your best Flai service call. Ask the GM to close their eyes. Play Flai first, then a competitor's best public demo call. Ask: "Which one would you want greeting your customers at 7:47 PM on a Thursday when you're closed?" Nine times out of ten, the answer is Flai &mdash; and that's the moment they lean in.</div>
+        </div>
+
+        <h2 class="section-divider">Competitor Cheat Sheet</h2>
+        <div class="matrix-wrap">
+            <table class="matrix">
+                <thead>
+                    <tr>
+                        <th>Competitor</th>
+                        <th>Their Pitch</th>
+                        <th>Their Weak Point</th>
+                        <th>Your One-Liner</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Numa</td>
+                        <td>Platform breadth, pay-per-appointment, 1,300 rooftops</td>
+                        <td>Sales via acquisition (Ficus); voice not from-scratch</td>
+                        <td>"One brain, one voice across sales + service &mdash; not a bolt-on."</td>
+                    </tr>
+                    <tr>
+                        <td>Stella</td>
+                        <td>Broadest DMS list, established brand</td>
+                        <td>2022-era voice; service-heavy; slower roadmap</td>
+                        <td>"The last generation of voice AI. Listen to both before you sign."</td>
+                    </tr>
+                    <tr>
+                        <td>Pam.ai</td>
+                        <td>Fast scale via CallRevu/Dealer-FX, ROI stats</td>
+                        <td>Captive distribution; voice layer inside others' stacks</td>
+                        <td>"Independent. Purpose-built. Full-stack voice, not a layer on CallRevu."</td>
+                    </tr>
+                    <tr>
+                        <td>Mia</td>
+                        <td>35+ integrations, "super employee", $20M Series A</td>
+                        <td>Not voice-first; capital-hungry</td>
+                        <td>"Same thesis, better voice, OEM-backed, capital-efficient."</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="section-divider">Updating This Battlecard</h2>
+        <div class="card">
+            <p>Refresh cadence:</p>
+            <ul class="bullets">
+                <li><strong>Monthly:</strong> check for new releases, funding, integration partnerships</li>
+                <li><strong>Before any major deal:</strong> run a deep refresh on the specific competitor involved</li>
+                <li><strong>After win/loss:</strong> add the pattern to the relevant competitor card</li>
+                <li><strong>On competitor announcements:</strong> update that card immediately &mdash; especially Numa's Ficus integration progress and Mia's post-NADA '26 product reveal</li>
+            </ul>
+        </div>
+    </section>
+
+    <footer class="foot">
+        Internal use only · Flai Competitive Battlecard · Data sources: public web research as of April 22, 2026 · Refresh recommended monthly or before major deals
+    </footer>
+</div>
+
+<script>
+    const tabs = document.querySelectorAll('.tab');
+    const contents = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(target).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+</script>
+</body>
+</html>
